@@ -1,0 +1,22 @@
+const router = require('express').Router();
+const rateLimit = require('express-rate-limit');
+const c = require('../controllers/cmsController');
+const S = require('../validators/schemas');
+const { validate } = require('../middleware/validate');
+const { can } = require('../middleware/auth');
+const { imageUpload } = require('../middleware/upload');
+const { requireRecaptcha } = require('../services/recaptcha');
+
+router.get('/public/:slug', c.publicGet);
+router.post('/contact', rateLimit({ windowMs: 15 * 60 * 1000, limit: 10 }), validate(S.contact), requireRecaptcha('contact'), c.contact);
+router.get('/messages', can('cms.view'), c.contactList);
+router.patch('/messages/:id/read', can('cms.view'), c.contactRead);
+router.delete('/messages/:id', can('cms.delete'), c.contactRemove);
+router.post('/upload-image', can('cms.add', 'cms.edit'), imageUpload.single('image'), c.uploadImage);
+router.get('/', can('cms.view'), c.list);
+router.get('/:id', can('cms.view'), c.get);
+router.post('/', can('cms.add'), imageUpload.single('featured_image'), validate(S.cms), c.create);
+router.put('/:id', can('cms.edit'), imageUpload.single('featured_image'), validate(S.cms), c.update);
+router.patch('/:id/toggle', can('cms.edit'), c.toggle);
+router.delete('/:id', can('cms.delete'), c.remove);
+module.exports = router;

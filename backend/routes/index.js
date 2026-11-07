@@ -1,0 +1,32 @@
+const router = require('express').Router();
+
+router.get('/health', (req, res) => res.json({ success: true, message: 'ok', time: new Date() }));
+router.use('/auth', require('./auth'));
+router.use('/editions', require('./editions'));
+router.use('/pages', require('./pages'));
+router.use('/page-areas', require('./pageAreas'));
+router.use('/backups', require('./backups'));
+router.use('/categories', require('./categories'));
+router.use('/areas', require('./areas'));
+router.use('/schedules', require('./schedules'));
+router.use('/comments', require('./comments'));
+router.use('/subscribers', require('./subscribers'));
+router.use('/settings', require('./settings'));
+router.use('/seo', require('./seo'));
+router.use('/notifications', require('./notifications'));
+router.use('/cms', require('./cms'));
+router.use('/clippings', require('./clippings'));
+router.use('/admin', require('./admin'));
+// Aliases matching the documented API structure
+const admin = require('../controllers/adminController');
+const { can } = require('../middleware/auth');
+router.get('/dashboard', can('dashboard.view'), admin.dashboard);
+router.get('/audit-logs', can('audit_logs.view'), admin.auditLogs);
+router.get('/roles', can('roles.view', 'users.view'), admin.rolesList);
+router.get('/permissions', can('roles.view', 'users.view'), admin.permissionsCatalog);
+router.get('/users', can('users.view'), admin.usersList);
+router.use('/theme', (req, res, next) => { req.url = '/theme' + (req.url === '/' ? '' : req.url); require('./settings')(req, res, next); });
+router.use('/watermark', (req, res, next) => { req.url = '/watermark' + (req.url === '/' ? '' : req.url); require('./settings')(req, res, next); });
+router.use('/pwa', (req, res, next) => { req.url = '/pwa' + (req.url === '/' ? '' : req.url); require('./settings')(req, res, next); });
+router.use('/social', (req, res, next) => { req.url = '/social' + (req.url === '/' ? '' : req.url); require('./settings')(req, res, next); });
+module.exports = router;
